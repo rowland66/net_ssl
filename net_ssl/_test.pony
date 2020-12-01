@@ -41,7 +41,7 @@ class iso _TestALPNProtocolListEncoding is UnitTest
       "raise error when encoding an empty array")
 
     let id256chars =
-      recover val String(256) .> concat(Iter[U8].repeat_value('A'), 0, 256) end
+      recover val String(256) .> concat_bytes(Iter[U8].repeat_value('A'), 0, 256) end
     h.assert_eq[USize](id256chars.size(), USize(256))
     h.assert_error(
       {()? => _ALPNProtocolList.from_array([id256chars])? },
@@ -56,6 +56,7 @@ class iso _TestALPNProtocolListEncoding is UnitTest
     else
       h.fail("failed to encode an array of valid identifiers")
     end
+    
 
 class iso _TestALPNProtocolListDecode is UnitTest
   fun name(): String => "net/ssl/_ALPNProtocolList.to_array"
@@ -517,7 +518,7 @@ class _TestTCPExpectNotify is TCPConnectionNotify
     buf = recover Array[U8] end
     buf.push((len >> 8).u8())
     buf.push((len >> 0).u8())
-    buf.append(data)
+    buf.append(data.array())
     conn.write(consume buf)
 
 class _TestTCPWritevNotifyClient is TCPConnectionNotify
@@ -528,7 +529,7 @@ class _TestTCPWritevNotifyClient is TCPConnectionNotify
 
   fun ref sentv(conn: TCPConnection ref, data: ByteSeqIter): ByteSeqIter =>
     recover
-      Array[ByteSeq] .> concat(data.values()) .> push(" (from client)")
+      Array[ByteSeq] .> concat(data.values()) .> push(" (from client)".array())
     end
 
   fun ref connected(conn: TCPConnection ref) =>
@@ -540,7 +541,7 @@ class _TestTCPWritevNotifyClient is TCPConnectionNotify
 
 class _TestTCPWritevNotifyServer is TCPConnectionNotify
   let _h: TestHelper
-  var _buffer: String iso = recover iso String end
+  var _buffer: Array[U8] iso = recover iso Array[U8] end
 
   new iso create(h: TestHelper) =>
     _h = h
@@ -556,8 +557,8 @@ class _TestTCPWritevNotifyServer is TCPConnectionNotify
     let expected = "hello, hello (from client)"
 
     if _buffer.size() >= expected.size() then
-      let buffer: String = _buffer = recover iso String end
-      _h.assert_eq[String](expected, consume buffer)
+      let buffer: Array[U8] iso = _buffer = recover iso Array[U8] end
+      _h.assert_eq[String](expected, String.from_iso_array(consume buffer))
       _h.complete_action("server receive")
     end
     true

@@ -63,7 +63,7 @@ primitive _ALPNProtocolList
       let len = proto.size()
       if (len == 0) or (len > 255) then error end
 
-      list.push(U8.from[USize](len))
+      list.push(U32.from[USize](len))
       list.append(proto)
     end
 

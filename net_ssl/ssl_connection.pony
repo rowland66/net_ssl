@@ -55,14 +55,14 @@ class SSLConnection is TCPConnectionNotify
       try
         _ssl.write(notified)?
       else
-        return ""
+        return "".array()
       end
     else
       _pending.push(notified)
     end
 
     _poll(conn)
-    ""
+    "".array()
 
   fun ref sentv(conn: TCPConnection ref, data: ByteSeqIter): ByteSeqIter =>
     let ret = recover val Array[ByteSeq] end
